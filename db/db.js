@@ -7,7 +7,21 @@ const todosdb = new Sequelize('todosdb', 'sergey', 'dunice', {
   logging: false,
 });
 
-const Todo = todosdb.define('Todo', require('./models/todo.model')(Sequelize));
+const Todos = todosdb.define('Todos', require('./models/todos.model')(Sequelize));
 
-module.exports.Todo = Todo;
+module.exports.Todos = Todos;
 module.exports.database = todosdb;
+
+
+
+// (async function() {
+//   // await todosdb.sync({ force: true }); // drop database
+//   await Promise.all([
+//     Todos.create({
+//       description: 'asd'
+//     }),
+//     Todos.create({
+//       description: 'asd'
+//     }),
+//   ]);
+// })();
