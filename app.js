@@ -3,11 +3,11 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const { ApolloServer, gql } = require('apollo-server-express');
+const { ApolloServer } = require('apollo-server-express');
 
 const typeDefs = require('./src/schema');
 const resolvers = require('./src/resolvers');
-const todoAPI = require('./src/datasources/todo');
+const TodoAPI = require('./src/datasources/todo');
 const { createStore } = require('./src/db');
 
 const indexRouter = require('./routes/index');
@@ -19,16 +19,17 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   dataSources: () => ({
-    todoAPI: new todoAPI({ store }),
+    todoAPI: new TodoAPI({ store }),
   }),
 });
 
 const app = express();
 server.applyMiddleware({ app });
 
-app.listen({ port: 4000 }, () =>
-  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`)
-);
+app.listen({ port: 4000 }, () => {
+  // eslint-disable-next-line no-console
+  console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`);
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -44,12 +45,12 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use((err, req, res) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
