@@ -1,103 +1,78 @@
 const { DataSource } = require('apollo-datasource');
 
+const COMPLETED = 'completed';
+const UNCOMPLETED = 'uncompleted';
+const ASC = 'asc';
+
 class TodoAPI extends DataSource {
   constructor({ store }) {
     super();
     this.store = store;
   }
 
-  initialize(config) {
-    this.context = config.context;
+  async createTodo(data) {
+    if (data.priority < 1) delete data.priority;
+    await this.store.todos.create(data);
+    return await this.getAllTodos();
   }
 
-  async getAllTodos() {
-    const response = await this.store.todos.findAll();
-    console.log(response, 'response');
-    return Array.isArray(response)
-      ? response.map(todo => this.homeReducer(todo))
+  async deleteTodo({ id }) {
+    await this.store.todos.destroy({
+      where: { id }
+    });
+    return await this.getAllTodos();
+  }
+
+  async updateTodo({ description, priority, id }) {
+    if (priority < 1) priority = 1;
+
+    await this.store.todos.update(
+      { description, priority },
+      { where: { id } }
+    );
+    return await this.getAllTodos();
+  }
+
+  async completedTodo({ id }) {
+    await this.store.todos.update(
+      { completed: true },
+      { where: { id } }
+    );
+    return await this.getAllTodos();
+  }
+
+  async getAllTodos(data = {}) {
+    const {sortField, sortOrder = ASC, filterTodos} = data;
+    const isSortField = sortField && sortField.length > 0;
+    const isFilterTodos = filterTodos && filterTodos.length > 0;
+    const options = isSortField
+      ? { order: [[sortField, sortOrder.toUpperCase()]] }
+      : {};
+    const response = await this.store.todos.findAll(options);
+    const todos =  Array.isArray(response)
+      ? response.map(todo => this.todoReducer(todo))
       : [];
+
+    let filteredTodos;
+
+    if (isFilterTodos && filterTodos.toLowerCase() === COMPLETED)
+      filteredTodos = todos.filter(todo => todo.completed === true);
+
+    if (isFilterTodos && filterTodos.toLowerCase() === UNCOMPLETED)
+      filteredTodos  = todos.filter(todo => todo.completed === false);
+
+    return filteredTodos || todos;
   }
 
-  homeReducer(todo) {
-
+  todoReducer(todo) {
     return {
       id: todo.id || 0,
-      description: todo.description || 'ups',
+      description: todo.description || 'description is null, oops',
       completed: todo.completed,
       createdAt: todo.createdAt || 0,
       priority: todo.priority,
     };
   }
-
-  // async getHomeById({ homeId }) {
-  //   const response = await this.store.homes.findOne({ where: { id: homeId }, raw: true });
-  //   return this.homeReducer(response);
-  // }
-  //
-  // getHomesByIds({ homeIds }) {
-  //   return Promise.all(
-  //     homeIds.map(homeId => this.getHomeById({ homeId })),
-  //   );
-  // }
-  //
-  // async changeHomeInfo({ homeId, name }) {
-  //   try{
-  //     const home = await this.store.homes.findOne({ where: { id: homeId } });
-  //     if (!home) {
-  //       return {
-  //         success: false,
-  //         message: 'failed to change home info',
-  //       };
-  //     }
-  //
-  //     const updatedHome = await home.update({ name });
-  //     const homeInfo = this.homeReducer(updatedHome.dataValues);
-  //     return {
-  //       success: true,
-  //       message: 'success',
-  //       home: homeInfo,
-  //     }
-  //   } catch (err) {
-  //     console.log(err);
-  //     return {
-  //       success: false,
-  //       message: 'failed to change home info',
-  //     };
-  //   }
-  // }
-  //
-  // async addHomeInfo(data){
-  //   try {
-  //     console.log('%c !!!!!data -->', 'color: orange;', data);
-  //     const {
-  //       name, address, buildYear,
-  //       price, bedroom, bathroom,
-  //     } = data;
-  //     const newRow = {
-  //       name,
-  //       address,
-  //       buildYear,
-  //       price,
-  //       bedroom,
-  //       bathroom,
-  //       createdAt: epochSeconds(),
-  //     };
-  //
-  //     const response = await this.store.homes.create(newRow);
-  //     const homeInfo = this.homeReducer(response.dataValues);
-  //     return {
-  //       success: true,
-  //       message: 'success',
-  //       home: homeInfo,
-  //     }
-  //   } catch (err) {
-  //     console.log(err);
-  //     return {
-  //       success: false,
-  //       message: 'failed to add home info',
-  //     };
-  //   }
-  // }
 
 }
 
