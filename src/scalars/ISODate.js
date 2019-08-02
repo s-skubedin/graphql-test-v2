@@ -7,15 +7,17 @@ function serialize(value) {
 }
 
 function parseValue(value) {
-  return returnOnError(() => value == null ? null : new Date(value), null);
+  return returnOnError(() => (value == null ? null : new Date(value)), null);
 }
 
 function parseLiteral(ast) {
   return ast.kind === Kind.STRING ? parseValue(ast.value) : null;
 }
 
-module.exports =  new GraphQLScalarType({
+module.exports = new GraphQLScalarType({
   name: 'ISODate',
   description: 'JavaScript Date object as an ISO timestamp',
-  serialize, parseValue, parseLiteral
+  serialize,
+  parseValue,
+  parseLiteral,
 });

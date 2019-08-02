@@ -1,20 +1,15 @@
 module.exports = {
   Query: {
-    getAllTodos: async (_, data, { dataSources }) =>
-      await dataSources.todoAPI.getAllTodos(data),
+    getAllTodos: async (_, data, { dataSources }) => dataSources.todoAPI.getAllTodos(data),
   },
 
   Mutation: {
-    createTodo: async (_, data, { dataSources }) =>
-      await dataSources.todoAPI.createTodo(data),
+    createTodo: async (_, data, { dataSources }) => dataSources.todoAPI.createTodo(data),
 
-    updateTodo: async (_, data, { dataSources }) =>
-      await dataSources.todoAPI.updateTodo(data),
+    updateTodo: async (_, data, { dataSources }) => dataSources.todoAPI.updateTodo(data),
 
-    deleteTodo: async (_, data, { dataSources }) =>
-      await dataSources.todoAPI.deleteTodo(data),
+    deleteTodo: async (_, data, { dataSources }) => dataSources.todoAPI.deleteTodo(data),
 
-    completedTodo: async (_, data, { dataSources }) =>
-      await dataSources.todoAPI.completedTodo(data),
+    completedTodo: async (_, data, { dataSources }) => dataSources.todoAPI.completedTodo(data),
   },
 };

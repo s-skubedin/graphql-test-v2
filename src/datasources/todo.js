@@ -11,60 +11,62 @@ class TodoAPI extends DataSource {
   }
 
   async createTodo(data) {
-    if (data.priority < 1) delete data.priority;
-    await this.store.todos.create(data);
-    return await this.getAllTodos();
+    const filteredData = data.priority < 1 ? { ...data, priority: 1 } : data;
+    await this.store.todos.create(filteredData);
+    return this.getAllTodos();
   }
 
   async deleteTodo({ id }) {
     await this.store.todos.destroy({
-      where: { id }
+      where: { id },
     });
-    return await this.getAllTodos();
+    return this.getAllTodos();
   }
 
   async updateTodo({ description, priority, id }) {
-    if (priority < 1) priority = 1;
+    const priorityTodo = priority < 1 ? 1 : priority;
 
     await this.store.todos.update(
-      { description, priority },
-      { where: { id } }
+      { description, priority: priorityTodo },
+      { where: { id } },
     );
-    return await this.getAllTodos();
+    return this.getAllTodos();
   }
 
   async completedTodo({ id }) {
     await this.store.todos.update(
       { completed: true },
-      { where: { id } }
+      { where: { id } },
     );
-    return await this.getAllTodos();
+    return this.getAllTodos();
   }
 
   async getAllTodos(data = {}) {
-    const {sortField, sortOrder = ASC, filterTodos} = data;
+    const { sortField, sortOrder = ASC, filterTodos } = data;
     const isSortField = sortField && sortField.length > 0;
     const isFilterTodos = filterTodos && filterTodos.length > 0;
     const options = isSortField
       ? { order: [[sortField, sortOrder.toUpperCase()]] }
       : {};
     const response = await this.store.todos.findAll(options);
-    const todos =  Array.isArray(response)
-      ? response.map(todo => this.todoReducer(todo))
+    const todos = Array.isArray(response)
+      ? response.map(todo => TodoAPI.todoReducer(todo))
       : [];
 
     let filteredTodos;
 
-    if (isFilterTodos && filterTodos.toLowerCase() === COMPLETED)
+    if (isFilterTodos && filterTodos.toLowerCase() === COMPLETED) {
       filteredTodos = todos.filter(todo => todo.completed === true);
+    }
 
-    if (isFilterTodos && filterTodos.toLowerCase() === UNCOMPLETED)
-      filteredTodos  = todos.filter(todo => todo.completed === false);
+    if (isFilterTodos && filterTodos.toLowerCase() === UNCOMPLETED) {
+      filteredTodos = todos.filter(todo => todo.completed === false);
+    }
 
     return filteredTodos || todos;
   }
 
-  todoReducer(todo) {
+  static todoReducer(todo) {
     return {
       id: todo.id || 0,
       description: todo.description || 'description is null, oops',
@@ -73,7 +75,6 @@ class TodoAPI extends DataSource {
       priority: todo.priority,
     };
   }
-
 }
 
 module.exports = TodoAPI;

@@ -1,4 +1,4 @@
-const todosResolvers = require("./todos");
+const todosResolvers = require('./todos');
 
 module.exports = {
   Query: {
